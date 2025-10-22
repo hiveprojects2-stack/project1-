@@ -343,4 +343,3 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
     </div>
   );
 };
-}
