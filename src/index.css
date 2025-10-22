@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Accessibility Styles */
+:root {
+  --animation-duration: 0.3s;
+  --transition-duration: 0.3s;
+  --text-spacing-multiplier: 1;
+  --cursor-size: 100%;
+}
+
+/* Dark Theme */
+.dark-theme {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .bg-white {
+  background-color: #2d2d2d !important;
+  color: #ffffff !important;
+}
+
+.dark-theme .bg-gray-50 {
+  background-color: #3a3a3a !important;
+}
+
+.dark-theme .bg-gray-100 {
+  background-color: #404040 !important;
+}
+
+.dark-theme .text-gray-800 {
+  color: #ffffff !important;
+}
+
+.dark-theme .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+.dark-theme .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+.dark-theme .border-gray-200 {
+  border-color: #4b5563 !important;
+}
+
+.dark-theme .border-gray-300 {
+  border-color: #6b7280 !important;
+}
+
+/* High Contrast Theme */
+.high-contrast-theme {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.high-contrast-theme .bg-white {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  border: 2px solid #ffffff !important;
+}
+
+.high-contrast-theme .bg-blue-600 {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+.high-contrast-theme .text-blue-600 {
+  color: #ffffff !important;
+}
+
+.high-contrast-theme .text-gray-800,
+.high-contrast-theme .text-gray-600,
+.high-contrast-theme .text-gray-500 {
+  color: #ffffff !important;
+}
+
+/* Color Blind Support */
+[data-colorblind="protanopia"] {
+  filter: url(#protanopia);
+}
+
+[data-colorblind="deuteranopia"] {
+  filter: url(#deuteranopia);
+}
+
+[data-colorblind="tritanopia"] {
+  filter: url(#tritanopia);
+}
+
+/* Text Spacing */
+* {
+  line-height: calc(1.5 * var(--text-spacing-multiplier)) !important;
+  letter-spacing: calc(0.05em * var(--text-spacing-multiplier)) !important;
+}
+
+/* Cursor Size */
+* {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M8 4l16 12-6 2-4 8-6-6z" fill="black"/></svg>') 0 0, auto;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Screen Reader Support */
+[data-screen-reader="true"] .sr-only {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: visible !important;
+  clip: auto !important;
+  white-space: normal !important;
+}
+
+/* Keyboard Navigation */
+[data-keyboard-nav="true"] *:focus {
+  outline: 3px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+
+[data-keyboard-nav="true"] button:focus,
+[data-keyboard-nav="true"] input:focus,
+[data-keyboard-nav="true"] select:focus,
+[data-keyboard-nav="true"] textarea:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Skip Links */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
