@@ -509,7 +509,7 @@ export const SellerDashboard: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => updateCartQuantity(item.productId, -1)}
-                            className="p-1 h-8 w-8 border-0 hover:bg-gray-100"
+                            className="p-1 h-8 w-8 border-0 hover:bg-gray-100 text-red-600 hover:text-red-700"
                           >
                             <Minus size={14} />
                           </Button>
@@ -520,7 +520,7 @@ export const SellerDashboard: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => updateCartQuantity(item.productId, 1)}
-                            className="p-1 h-8 w-8 border-0 hover:bg-gray-100"
+                            className="p-1 h-8 w-8 border-0 hover:bg-gray-100 text-red-600 hover:text-red-700"
                           >
                             <Plus size={14} />
                           </Button>

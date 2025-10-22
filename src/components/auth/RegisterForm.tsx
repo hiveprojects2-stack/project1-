@@ -66,6 +66,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ userType, onRegister
     'Lusaka Central', 'Lusaka East', 'Lusaka West', 'Copperbelt', 'Northern', 'Eastern', 'Western', 'Southern'
   ];
 
+  const zambianLocations = [
+    'Lusaka', 'Kitwe', 'Ndola', 'Kabwe', 'Chingola', 'Mufulira', 'Livingstone', 'Luanshya',
+    'Kasama', 'Chipata', 'Kalulushi', 'Mazabuka', 'Choma', 'Mongu', 'Solwezi', 'Mansa',
+    'Kapiri Mposhi', 'Monze', 'Kafue', 'Chambishi', 'Mpika', 'Samfya', 'Nakonde', 'Siavonga',
+    'Senanga', 'Mbala', 'Nchelenge', 'Petauke', 'Isoka', 'Serenje', 'Luwingu', 'Mumbwa',
+    'Chinsali', 'Katete', 'Sesheke', 'Mkushi', 'Mpongwe', 'Lundazi', 'Kawambwa', 'Chavuma',
+    'Mungwi', 'Kalabo', 'Namwala', 'Lukulu', 'Chirundu', 'Itezhi-Tezhi', 'Nyimba', 'Chikankata',
+    'Sinda', 'Zimba', 'Kaoma', 'Mwinilunga', 'Shangombo', 'Mafinga', 'Chilubi', 'Mpulungu'
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <Input
@@ -124,14 +134,25 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ userType, onRegister
             </select>
           </div>
 
-          <Input
-            label="Business Location"
-            placeholder="Enter your business location"
-            value={formData.location}
-            onChange={(e) => handleChange('location', e.target.value)}
-            icon={MapPin}
-            required
-          />
+          <div className="space-y-2">
+            <label className="block text-sm font-semibold text-gray-700">
+              Business Location <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <select
+                value={formData.location}
+                onChange={(e) => handleChange('location', e.target.value)}
+                required
+                className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm pl-11 pr-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+              >
+                <option value="">Select location</option>
+                {zambianLocations.map(location => (
+                  <option key={location} value={location}>{location}</option>
+                ))}
+              </select>
+            </div>
+          </div>
         </>
       )}
 

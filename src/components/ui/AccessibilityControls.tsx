@@ -48,45 +48,63 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
 
   const applySettings = (newSettings: AccessibilitySettings) => {
     const root = document.documentElement;
-    
-    // Font size
-    root.style.fontSize = `${newSettings.fontSize}%`;
-    
+    const body = document.body;
+
+    // Font size - apply to body for better control
+    body.style.fontSize = `${newSettings.fontSize}%`;
+
     // Theme
     root.setAttribute('data-theme', newSettings.theme);
+    root.classList.remove('dark-theme', 'high-contrast-theme');
+
     if (newSettings.theme === 'dark') {
       root.classList.add('dark-theme');
+      body.style.backgroundColor = '#1a1a1a';
+      body.style.color = '#ffffff';
     } else if (newSettings.theme === 'high-contrast') {
       root.classList.add('high-contrast-theme');
+      body.style.backgroundColor = '#000000';
+      body.style.color = '#ffffff';
     } else {
-      root.classList.remove('dark-theme', 'high-contrast-theme');
+      body.style.backgroundColor = '';
+      body.style.color = '';
     }
-    
+
     // Reduced motion
     if (newSettings.reducedMotion) {
+      root.setAttribute('data-reduced-motion', 'true');
       root.style.setProperty('--animation-duration', '0s');
       root.style.setProperty('--transition-duration', '0s');
     } else {
+      root.removeAttribute('data-reduced-motion');
       root.style.removeProperty('--animation-duration');
       root.style.removeProperty('--transition-duration');
     }
-    
+
     // Text spacing
     root.style.setProperty('--text-spacing-multiplier', `${newSettings.textSpacing / 100}`);
-    
+
     // Cursor size
     root.style.setProperty('--cursor-size', `${newSettings.cursorSize}%`);
-    
+    root.removeAttribute('data-cursor-large');
+    root.removeAttribute('data-cursor-xlarge');
+
+    if (newSettings.cursorSize >= 200) {
+      root.setAttribute('data-cursor-xlarge', 'true');
+    } else if (newSettings.cursorSize >= 150) {
+      root.setAttribute('data-cursor-large', 'true');
+    }
+
     // Color blind mode
     root.setAttribute('data-colorblind', newSettings.colorBlindMode);
-    
+
     // Screen reader support
     if (newSettings.screenReader) {
       root.setAttribute('data-screen-reader', 'true');
     } else {
       root.removeAttribute('data-screen-reader');
     }
-    
+
     // Keyboard navigation
     if (newSettings.keyboardNavigation) {
       root.setAttribute('data-keyboard-nav', 'true');
@@ -119,9 +137,10 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="w-full max-w-2xl my-8">
+        <Card className="w-full">
+          <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-3">
               <div className="bg-blue-100 p-2 rounded-lg">
@@ -338,8 +357,9 @@ export const AccessibilityControls: React.FC<AccessibilityControlsProps> = ({ is
               </Button>
             </div>
           </div>
-        </div>
-      </Card>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
