@@ -31,9 +31,26 @@ export const SellerDashboard: React.FC = () => {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [qrCode, setQrCode] = useState<string>('');
-  
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [paymentFormData, setPaymentFormData] = useState({
+    network: '',
+    phoneNumber: '',
+    bankName: '',
+    accountNumber: '',
+    accountHolder: '',
+    cardNumber: '',
+    expiryDate: '',
+    cvv: '',
+    cardholderName: ''
+  });
+  const [paymentErrors, setPaymentErrors] = useState<any>({});
+
   const [products, setProducts] = useState<Product[]>([
     { id: '1', name: 'Cooking Oil 2L', category: 'Groceries', price: 45.00, vatPercentage: 16, stock: 50, isActive: true },
     { id: '2', name: 'Sugar 1kg', category: 'Groceries', price: 25.00, vatPercentage: 16, stock: 30, isActive: true },
@@ -178,6 +195,252 @@ export const SellerDashboard: React.FC = () => {
     setQrCode('');
   };
 
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setNewProduct({
+      name: product.name,
+      category: product.category,
+      price: product.price.toString(),
+      vatPercentage: product.vatPercentage,
+      stock: product.stock.toString()
+    });
+    setShowEditModal(true);
+  };
+
+  const saveEditedProduct = () => {
+    if (!editingProduct || !newProduct.name || !newProduct.category || !newProduct.price || !newProduct.stock) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setProducts(prev => prev.map(p =>
+      p.id === editingProduct.id
+        ? {
+            ...p,
+            name: newProduct.name,
+            category: newProduct.category,
+            price: parseFloat(newProduct.price),
+            vatPercentage: newProduct.vatPercentage,
+            stock: parseInt(newProduct.stock)
+          }
+        : p
+    ));
+
+    setShowEditModal(false);
+    setEditingProduct(null);
+    setNewProduct({ name: '', category: '', price: '', vatPercentage: 16, stock: '' });
+    alert('Product updated successfully!');
+  };
+
+  const handleDeleteProduct = (productId: string) => {
+    if (confirm('Are you sure you want to delete this product?')) {
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      alert('Product deleted successfully!');
+    }
+  };
+
+  const handlePaymentMethodSelect = (method: string) => {
+    setSelectedPaymentMethod(method);
+    setShowPaymentForm(true);
+    setPaymentFormData({
+      network: '',
+      phoneNumber: '',
+      bankName: '',
+      accountNumber: '',
+      accountHolder: '',
+      cardNumber: '',
+      expiryDate: '',
+      cvv: '',
+      cardholderName: ''
+    });
+    setPaymentErrors({});
+  };
+
+  const handlePaymentFormChange = (field: string, value: string) => {
+    setPaymentFormData(prev => ({ ...prev, [field]: value }));
+    if (paymentErrors[field]) {
+      setPaymentErrors((prev: any) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const validatePaymentForm = () => {
+    const errors: any = {};
+
+    if (selectedPaymentMethod === 'Mobile Money') {
+      if (!paymentFormData.network) errors.network = 'Please select a network';
+      if (!paymentFormData.phoneNumber) errors.phoneNumber = 'Phone number is required';
+      else if (!/^(097|096|095|077|076)\d{7}$/.test(paymentFormData.phoneNumber.replace(/\s/g, ''))) {
+        errors.phoneNumber = 'Please enter a valid Zambian phone number';
+      }
+    } else if (selectedPaymentMethod === 'Bank Transfer') {
+      if (!paymentFormData.bankName) errors.bankName = 'Please select a bank';
+      if (!paymentFormData.accountNumber) errors.accountNumber = 'Account number is required';
+      if (!paymentFormData.accountHolder) errors.accountHolder = 'Account holder name is required';
+    } else if (selectedPaymentMethod === 'Card Payment') {
+      if (!paymentFormData.cardNumber) errors.cardNumber = 'Card number is required';
+      else if (!/^\d{16}$/.test(paymentFormData.cardNumber.replace(/\s/g, ''))) {
+        errors.cardNumber = 'Please enter a valid 16-digit card number';
+      }
+      if (!paymentFormData.expiryDate) errors.expiryDate = 'Expiry date is required';
+      if (!paymentFormData.cvv) errors.cvv = 'CVV is required';
+      if (!paymentFormData.cardholderName) errors.cardholderName = 'Cardholder name is required';
+    }
+
+    setPaymentErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const processPayment = () => {
+    if (!validatePaymentForm()) return;
+
+    const taxAmount = 2504.70;
+
+    setTimeout(() => {
+      alert(`Payment of ZMW ${taxAmount.toFixed(2)} processed successfully via ${selectedPaymentMethod}. Receipt generated and sent to ZRA.`);
+      setShowPaymentForm(false);
+      setSelectedPaymentMethod('');
+      setShowPaymentModal(false);
+      downloadReceipt();
+    }, 2000);
+  };
+
+  const downloadReceipt = () => {
+    const receiptContent = `
+HIVE.TAX - TAX PAYMENT RECEIPT
+================================
+
+Payment Date: ${new Date().toLocaleString()}
+Transaction ID: HTX-TAX-${Date.now()}
+
+BUSINESS INFORMATION
+--------------------
+Business Name: Your Business Name
+TPIN: ZM123456789
+Payment Period: January 2024
+
+TAX PAYMENT DETAILS
+-------------------
+Gross Sales: ZMW 15,420.00
+VAT Collected (16%): ZMW 2,467.20
+Service VAT (5%): ZMW 37.50
+--------------------
+Total VAT Paid: ZMW 2,504.70
+
+PAYMENT METHOD
+--------------
+Method: ${selectedPaymentMethod}
+Status: CONFIRMED
+Payment Reference: PAY-${Date.now()}
+
+RECIPIENT
+---------
+Zambia Revenue Authority (ZRA)
+Tax Collection Account
+Bank of Zambia
+
+This is an official tax payment receipt.
+Please keep this for your records.
+
+Generated by Hive.Tax Platform
+For inquiries, contact ZRA
+    `;
+
+    const blob = new Blob([receiptContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tax-payment-receipt-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const downloadTaxReport = () => {
+    const reportContent = `
+HIVE.TAX - SELLER TAX REPORT
+=============================
+
+Report Generated: ${new Date().toLocaleString()}
+Report ID: SELLER-RPT-${Date.now()}
+
+BUSINESS INFORMATION
+--------------------
+Business Name: Your Business Name
+TPIN: ZM123456789
+Reporting Period: January 2024
+
+TAX SUMMARY
+-----------
+Monthly Revenue: ZMW 15,420.00
+Products Listed: ${products.length}
+Total Sales: 156 transactions
+
+TAX BREAKDOWN
+-------------
+Gross Sales: ZMW 15,420.00
+VAT Collected (16%): ZMW 2,467.20
+Service VAT (5%): ZMW 37.50
+--------------------
+Total VAT Due: ZMW 2,504.70
+
+PRODUCTS
+--------
+${products.map(p => `${p.name} - ${p.category} - ZMW ${p.price.toFixed(2)} (VAT: ${p.vatPercentage}%)`).join('\n')}
+
+COMPLIANCE STATUS
+-----------------
+Status: Good
+All tax obligations are up to date
+Last Payment: January 15, 2024
+Next Due: February 15, 2024
+
+This is an official tax report for your records.
+Generated by Hive.Tax Platform
+    `;
+
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `seller-tax-report-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = matches && matches[0] || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    if (parts.length) {
+      return parts.join(' ');
+    } else {
+      return v;
+    }
+  };
+
+  const zambiaBanks = [
+    'Zanaco Bank',
+    'First National Bank (FNB)',
+    'Stanbic Bank',
+    'Standard Chartered Bank',
+    'Absa Bank Zambia',
+    'Citibank Zambia',
+    'Atlas Mara Bank',
+    'Indo Zambia Bank',
+    'Access Bank Zambia',
+    'United Bank for Africa (UBA)',
+    'Bank of China Zambia'
+  ];
+
+  const mobileNetworks = [
+    { name: 'MTN Mobile Money', prefix: '097' },
+    { name: 'Airtel Money', prefix: '097/096/077' },
+    { name: 'Zamtel Kwacha', prefix: '095/076' }
+  ];
+
   const cartTotal = cart.reduce((sum, item) => sum + item.totalPrice, 0);
   const cartVat = cart.reduce((sum, item) => sum + item.vatAmount, 0);
 
@@ -239,42 +502,60 @@ export const SellerDashboard: React.FC = () => {
             </CardHeader>
           </Card>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Card key={product.id} hover>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 mb-1">{product.name}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{product.category}</p>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="font-semibold text-green-600">ZMW {product.price.toFixed(2)}</span>
-                        <span className="text-gray-500">VAT: {product.vatPercentage}%</span>
+          {/* Products List */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-3">
+                {products.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                    <div className="flex-1 flex items-center space-x-6">
+                      <div className="flex-1">
+                        <h4 className="font-bold text-gray-800">{product.name}</h4>
+                        <p className="text-sm text-gray-600">{product.category}</p>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1">Stock: {product.stock}</p>
+                      <div className="flex items-center space-x-6 text-sm">
+                        <div>
+                          <p className="text-gray-500 text-xs">Price</p>
+                          <p className="font-semibold text-green-600">ZMW {product.price.toFixed(2)}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">VAT</p>
+                          <p className="font-semibold text-gray-700">{product.vatPercentage}%</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Stock</p>
+                          <p className="font-semibold text-gray-700">{product.stock}</p>
+                        </div>
+                        <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
+                          {product.isActive ? 'Active' : 'Inactive'}
+                        </div>
+                      </div>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {product.isActive ? 'Active' : 'Inactive'}
+                    <div className="flex space-x-2 ml-4">
+                      <Button size="sm" onClick={() => addToCart(product)}>
+                        Add to Cart
+                      </Button>
+                      <Button size="sm" variant="outline" icon={Edit} onClick={() => handleEditProduct(product)}>
+                        Edit
+                      </Button>
+                      <Button size="sm" variant="outline" icon={Trash2} className="text-red-600" onClick={() => handleDeleteProduct(product.id)}>
+                        Delete
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <Button size="sm" onClick={() => addToCart(product)} className="flex-1">
-                      Add to Cart
-                    </Button>
-                    <Button size="sm" variant="outline" icon={Edit}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" icon={Trash2} className="text-red-600">
-                      Delete
-                    </Button>
+                ))}
+                {products.length === 0 && (
+                  <div className="text-center py-8">
+                    <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-600 mb-2">No products yet</p>
+                    <p className="text-sm text-gray-500">Add your first product to get started</p>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -371,15 +652,33 @@ export const SellerDashboard: React.FC = () => {
                 </div>
               </div>
 
+              <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
+                <h4 className="font-bold text-yellow-800 mb-3">Payment Instructions</h4>
+                <div className="space-y-2 text-sm text-yellow-700">
+                  <p><strong>Why pay taxes?</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Legal compliance requirement for all registered businesses</li>
+                    <li>Contributes to national infrastructure and public services</li>
+                    <li>Maintains good standing with ZRA</li>
+                    <li>Avoids penalties and legal consequences</li>
+                  </ul>
+                  <p className="mt-3"><strong>How to pay:</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-2">
+                    <li>Click "Pay Tax Now" button below</li>
+                    <li>Choose your preferred payment method</li>
+                    <li>Enter payment details accurately</li>
+                    <li>Confirm payment and receive instant receipt</li>
+                    <li>Download and save receipt for your records</li>
+                  </ol>
+                </div>
+              </div>
+
               <div className="flex space-x-4">
-                <Button icon={Download} variant="outline">
+                <Button icon={Download} variant="outline" onClick={downloadTaxReport}>
                   Download Tax Report
                 </Button>
-                <Button icon={Calendar} variant="outline">
-                  Schedule Payment
-                </Button>
-                <Button icon={BarChart3} variant="outline">
-                  View Analytics
+                <Button onClick={() => setShowPaymentModal(true)} className="bg-green-600 hover:bg-green-700">
+                  Pay Tax Now (ZMW 2,504.70)
                 </Button>
               </div>
             </div>
@@ -575,6 +874,364 @@ export const SellerDashboard: React.FC = () => {
                   <p className="text-sm text-gray-600">Show this QR code to the buyer for payment</p>
                 </div>
               )}
+            </CardContent>
+          </div>
+        </Card>
+      )}
+
+      {/* Edit Product Modal */}
+      {showEditModal && editingProduct && (
+        <Card className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-800">Edit Product</h3>
+              <Button variant="outline" size="sm" onClick={() => {
+                setShowEditModal(false);
+                setEditingProduct(null);
+                setNewProduct({ name: '', category: '', price: '', vatPercentage: 16, stock: '' });
+              }}>
+                ×
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <Input
+                label="Product Name *"
+                placeholder="Enter product name"
+                value={newProduct.name}
+                onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
+                required
+              />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  Category *
+                </label>
+                <select
+                  value={newProduct.category}
+                  onChange={(e) => {
+                    const selectedCategory = businessCategories.find(cat => cat.name === e.target.value);
+                    setNewProduct(prev => ({
+                      ...prev,
+                      category: e.target.value,
+                      vatPercentage: selectedCategory?.tax || 16
+                    }));
+                  }}
+                  required
+                  className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                >
+                  <option value="">Select category</option>
+                  {businessCategories.map(cat => (
+                    <option key={cat.name} value={cat.name}>{cat.name} ({cat.tax}% VAT)</option>
+                  ))}
+                </select>
+              </div>
+
+              <Input
+                label="Price (ZMW) *"
+                type="number"
+                placeholder="0.00"
+                value={newProduct.price}
+                onChange={(e) => setNewProduct(prev => ({ ...prev, price: e.target.value }))}
+                required
+              />
+
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-gray-700">
+                  VAT Percentage
+                </label>
+                <input
+                  type="number"
+                  value={newProduct.vatPercentage}
+                  onChange={(e) => setNewProduct(prev => ({ ...prev, vatPercentage: parseInt(e.target.value) || 16 }))}
+                  className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                  readOnly
+                />
+                <p className="text-sm text-gray-500">VAT rate is automatically set based on category</p>
+              </div>
+
+              <Input
+                label="Stock Quantity *"
+                type="number"
+                placeholder="0"
+                value={newProduct.stock}
+                onChange={(e) => setNewProduct(prev => ({ ...prev, stock: e.target.value }))}
+                required
+              />
+
+              <div className="flex space-x-3">
+                <Button onClick={saveEditedProduct} className="flex-1">
+                  Save Changes
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  setShowEditModal(false);
+                  setEditingProduct(null);
+                  setNewProduct({ name: '', category: '', price: '', vatPercentage: 16, stock: '' });
+                }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Tax Payment Modal */}
+      {showPaymentModal && (
+        <Card className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <CardHeader className="border-b">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold text-gray-800">Pay Tax to ZRA</h3>
+                <Button variant="outline" size="sm" onClick={() => {
+                  setShowPaymentModal(false);
+                  setShowPaymentForm(false);
+                  setSelectedPaymentMethod('');
+                }}>
+                  ×
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  <h4 className="font-semibold text-blue-800 mb-2">Payment Amount</h4>
+                  <p className="text-3xl font-bold text-blue-900">ZMW 2,504.70</p>
+                  <p className="text-sm text-blue-700 mt-1">Monthly VAT Payment for January 2024</p>
+                </div>
+
+                {!showPaymentForm && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-gray-800">Choose Payment Method</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button onClick={() => handlePaymentMethodSelect('Mobile Money')} className="h-16 flex flex-col items-center justify-center">
+                        <span className="text-sm">Mobile Money</span>
+                        <span className="text-xs text-white/80">MTN, Airtel, Zamtel</span>
+                      </Button>
+                      <Button onClick={() => handlePaymentMethodSelect('Bank Transfer')} variant="outline" className="h-16 flex flex-col items-center justify-center">
+                        <span className="text-sm">Bank Transfer</span>
+                        <span className="text-xs text-gray-500">All major banks</span>
+                      </Button>
+                      <Button onClick={() => handlePaymentMethodSelect('Card Payment')} variant="outline" className="h-16 flex flex-col items-center justify-center">
+                        <span className="text-sm">Card Payment</span>
+                        <span className="text-xs text-gray-500">Visa, Mastercard</span>
+                      </Button>
+                      <Button onClick={() => handlePaymentMethodSelect('PayPal')} variant="outline" className="h-16 flex flex-col items-center justify-center">
+                        <span className="text-sm">PayPal</span>
+                        <span className="text-xs text-gray-500">International</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {showPaymentForm && selectedPaymentMethod === 'Mobile Money' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-800">Mobile Money Payment</h4>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setShowPaymentForm(false);
+                        setSelectedPaymentMethod('');
+                      }}>
+                        Back
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Select Network *</label>
+                      <select
+                        value={paymentFormData.network}
+                        onChange={(e) => handlePaymentFormChange('network', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      >
+                        <option value="">Choose your mobile network</option>
+                        {mobileNetworks.map(network => (
+                          <option key={network.name} value={network.name}>
+                            {network.name} ({network.prefix})
+                          </option>
+                        ))}
+                      </select>
+                      {paymentErrors.network && <p className="text-sm text-red-600">{paymentErrors.network}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Phone Number *</label>
+                      <input
+                        type="tel"
+                        placeholder="097XXXXXXX"
+                        value={paymentFormData.phoneNumber}
+                        onChange={(e) => handlePaymentFormChange('phoneNumber', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      />
+                      {paymentErrors.phoneNumber && <p className="text-sm text-red-600">{paymentErrors.phoneNumber}</p>}
+                    </div>
+
+                    <Button onClick={processPayment} className="w-full">
+                      Confirm Payment
+                    </Button>
+                  </div>
+                )}
+
+                {showPaymentForm && selectedPaymentMethod === 'Bank Transfer' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-800">Bank Transfer Payment</h4>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setShowPaymentForm(false);
+                        setSelectedPaymentMethod('');
+                      }}>
+                        Back
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Select Your Bank *</label>
+                      <select
+                        value={paymentFormData.bankName}
+                        onChange={(e) => handlePaymentFormChange('bankName', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      >
+                        <option value="">Choose your bank</option>
+                        {zambiaBanks.map(bank => (
+                          <option key={bank} value={bank}>{bank}</option>
+                        ))}
+                      </select>
+                      {paymentErrors.bankName && <p className="text-sm text-red-600">{paymentErrors.bankName}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Account Number *</label>
+                      <input
+                        type="text"
+                        placeholder="Enter your account number"
+                        value={paymentFormData.accountNumber}
+                        onChange={(e) => handlePaymentFormChange('accountNumber', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      />
+                      {paymentErrors.accountNumber && <p className="text-sm text-red-600">{paymentErrors.accountNumber}</p>}
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Account Holder Name *</label>
+                      <input
+                        type="text"
+                        placeholder="Enter account holder name"
+                        value={paymentFormData.accountHolder}
+                        onChange={(e) => handlePaymentFormChange('accountHolder', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      />
+                      {paymentErrors.accountHolder && <p className="text-sm text-red-600">{paymentErrors.accountHolder}</p>}
+                    </div>
+
+                    <Button onClick={processPayment} className="w-full">
+                      Confirm Payment
+                    </Button>
+                  </div>
+                )}
+
+                {showPaymentForm && selectedPaymentMethod === 'Card Payment' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-800">Card Payment</h4>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setShowPaymentForm(false);
+                        setSelectedPaymentMethod('');
+                      }}>
+                        Back
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Card Number *</label>
+                      <input
+                        type="text"
+                        placeholder="1234 5678 9012 3456"
+                        value={paymentFormData.cardNumber}
+                        onChange={(e) => handlePaymentFormChange('cardNumber', formatCardNumber(e.target.value))}
+                        maxLength={19}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      />
+                      {paymentErrors.cardNumber && <p className="text-sm text-red-600">{paymentErrors.cardNumber}</p>}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">Expiry Date *</label>
+                        <input
+                          type="text"
+                          placeholder="MM/YY"
+                          value={paymentFormData.expiryDate}
+                          onChange={(e) => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            if (value.length >= 2) {
+                              value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                            }
+                            handlePaymentFormChange('expiryDate', value);
+                          }}
+                          maxLength={5}
+                          className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                        />
+                        {paymentErrors.expiryDate && <p className="text-sm text-red-600">{paymentErrors.expiryDate}</p>}
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm font-semibold text-gray-700">CVV *</label>
+                        <input
+                          type="text"
+                          placeholder="123"
+                          value={paymentFormData.cvv}
+                          onChange={(e) => handlePaymentFormChange('cvv', e.target.value.replace(/\D/g, '').substring(0, 3))}
+                          maxLength={3}
+                          className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                        />
+                        {paymentErrors.cvv && <p className="text-sm text-red-600">{paymentErrors.cvv}</p>}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="block text-sm font-semibold text-gray-700">Cardholder Name *</label>
+                      <input
+                        type="text"
+                        placeholder="Enter name as shown on card"
+                        value={paymentFormData.cardholderName}
+                        onChange={(e) => handlePaymentFormChange('cardholderName', e.target.value)}
+                        className="w-full rounded-xl border border-gray-300 bg-white/80 backdrop-blur-sm px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none transition-all duration-300"
+                      />
+                      {paymentErrors.cardholderName && <p className="text-sm text-red-600">{paymentErrors.cardholderName}</p>}
+                    </div>
+
+                    <Button onClick={processPayment} className="w-full">
+                      Pay Now
+                    </Button>
+                  </div>
+                )}
+
+                {showPaymentForm && selectedPaymentMethod === 'PayPal' && (
+                  <div className="space-y-4 border-t pt-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-semibold text-gray-800">PayPal Payment</h4>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setShowPaymentForm(false);
+                        setSelectedPaymentMethod('');
+                      }}>
+                        Back
+                      </Button>
+                    </div>
+
+                    <div className="text-center py-8">
+                      <div className="bg-blue-100 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <CreditCard className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h4 className="font-semibold text-gray-800 mb-2">PayPal Payment</h4>
+                      <p className="text-sm text-gray-600 mb-4">
+                        You will be redirected to PayPal to complete your payment securely
+                      </p>
+                      <Button onClick={processPayment} className="w-full">
+                        Continue to PayPal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </div>
         </Card>

@@ -46,7 +46,8 @@ export const BuyerDashboard: React.FC = () => {
   const monthlyStats = {
     totalPurchases: 1250, // This month's purchases
     fairTaxBadges: 12,   // Accumulated badges
-    transactions: 45     // This month's transaction count
+    transactions: 45,     // This month's transaction count
+    vatPaid: 200          // Estimated VAT paid this month
   };
 
   const stats = [
@@ -296,10 +297,6 @@ export const BuyerDashboard: React.FC = () => {
     setTransactionCode('');
   };
 
-  const reportFraud = () => {
-    alert('Fraud report submitted to ZRA. Thank you for promoting fair tax compliance!');
-  };
-
   const submitFraudReport = () => {
     if (!fraudReport.sellerName || !fraudReport.description) {
       alert('Please fill in all required fields');
@@ -401,11 +398,8 @@ Keep supporting fair tax compliance by using Hive.Tax!
               If a seller didn't provide a transaction code, this might be tax evasion. Help promote fair tax by reporting it.
             </p>
             <div className="flex space-x-2">
-              <Button variant="outline" size="sm" onClick={reportFraud}>
-                Quick Report
-              </Button>
               <Button variant="outline" size="sm" icon={Flag} onClick={() => setShowFraudReport(true)}>
-                Detailed Report
+                Report Fraud
               </Button>
             </div>
           </div>

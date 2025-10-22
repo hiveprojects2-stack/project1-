@@ -1,7 +1,6 @@
 import React from 'react';
-import { Shield, User, LogOut, Settings } from 'lucide-react';
+import { Shield, User, LogOut } from 'lucide-react';
 import { Button } from '../ui/Button';
-import { AccessibilityControls } from '../ui/AccessibilityControls';
 
 interface NavbarProps {
   userRole?: 'seller' | 'buyer' | 'zra_officer';
@@ -10,8 +9,6 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ userRole, userName, onLogout }) => {
-  const [showAccessibility, setShowAccessibility] = React.useState(false);
-  
   const getRoleColor = () => {
     switch (userRole) {
       case 'seller': return 'text-green-600';
@@ -40,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ userRole, userName, onLogout }) 
               Hive.Tax
             </h1>
           </div>
-          
+
           {userName && (
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
@@ -53,15 +50,6 @@ export const Navbar: React.FC<NavbarProps> = ({ userRole, userName, onLogout }) 
               <Button
                 variant="outline"
                 size="sm"
-                icon={Settings}
-                onClick={() => setShowAccessibility(true)}
-                title="Accessibility Settings"
-              >
-                Accessibility
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
                 icon={LogOut}
                 onClick={onLogout}
               >
@@ -71,11 +59,6 @@ export const Navbar: React.FC<NavbarProps> = ({ userRole, userName, onLogout }) 
           )}
         </div>
       </div>
-      
-      <AccessibilityControls
-        isOpen={showAccessibility}
-        onClose={() => setShowAccessibility(false)}
-      />
     </nav>
   );
 };
