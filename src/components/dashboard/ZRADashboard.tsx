@@ -9,7 +9,6 @@ import { ChatSystem } from './ChatSystem';
 export const ZRADashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'alerts' | 'compliance' | 'sellers' | 'revenue'>('alerts');
   const [selectedSeller, setSelectedSeller] = useState<any>(null);
-  const [selectedAlert, setSelectedAlert] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [selectedChatSeller, setSelectedChatSeller] = useState<any>(null);
@@ -22,110 +21,15 @@ export const ZRADashboard: React.FC = () => {
   ];
 
   const sellers = [
-    {
-      id: '1',
-      name: 'ABC Groceries',
-      tpin: 'ZM123456789',
-      status: 'Compliant',
-      lastTransaction: '2024-01-15',
-      monthlyVat: 3920,
-      location: 'Lusaka Central',
-      category: 'Shop/Retail Store',
-      taxRate: 16,
-      ownerName: 'John Mwamba',
-      phoneNumber: '0977123456',
-      email: 'abc.groceries@email.com',
-      registrationDate: '2022-03-15',
-      employeeCount: 8,
-      averageMonthlyRevenue: 24500,
-      complianceRate: 98
-    },
-    {
-      id: '2',
-      name: 'Quick Mart',
-      tpin: 'ZM987654321',
-      status: 'Warning',
-      lastTransaction: '2024-01-10',
-      monthlyVat: 1450,
-      location: 'Lusaka East',
-      category: 'Small Business',
-      taxRate: 5,
-      ownerName: 'Mary Banda',
-      phoneNumber: '0966234567',
-      email: 'quickmart@email.com',
-      registrationDate: '2023-06-20',
-      employeeCount: 3,
-      averageMonthlyRevenue: 29000,
-      complianceRate: 85
-    },
-    {
-      id: '3',
-      name: 'Super Store',
-      tpin: 'ZM456789123',
-      status: 'Non-Compliant',
-      lastTransaction: '2024-01-05',
-      monthlyVat: 0,
-      location: 'Copperbelt',
-      category: 'Shop/Retail Store',
-      taxRate: 16,
-      ownerName: 'Peter Phiri',
-      phoneNumber: '0955345678',
-      email: 'superstore@email.com',
-      registrationDate: '2021-11-08',
-      employeeCount: 15,
-      averageMonthlyRevenue: 45000,
-      complianceRate: 45
-    },
-    {
-      id: '4',
-      name: 'Tech Solutions',
-      tpin: 'ZM789123456',
-      status: 'Under Investigation',
-      lastTransaction: '2024-01-12',
-      monthlyVat: 8750,
-      location: 'Lusaka West',
-      category: 'Technology/IT Services',
-      taxRate: 5,
-      ownerName: 'Sarah Mulenga',
-      phoneNumber: '0977456789',
-      email: 'techsolutions@email.com',
-      registrationDate: '2020-08-12',
-      employeeCount: 12,
-      averageMonthlyRevenue: 175000,
-      complianceRate: 92
-    }
+    { id: '1', name: 'ABC Groceries', tpin: 'ZM123456789', status: 'Compliant', lastTransaction: '2024-01-15', monthlyVat: 3920, location: 'Lusaka Central' },
+    { id: '2', name: 'Quick Mart', tpin: 'ZM987654321', status: 'Warning', lastTransaction: '2024-01-10', monthlyVat: 1450, location: 'Lusaka East' },
+    { id: '3', name: 'Super Store', tpin: 'ZM456789123', status: 'Non-Compliant', lastTransaction: '2024-01-05', monthlyVat: 0, location: 'Copperbelt' },
+    { id: '4', name: 'Tech Solutions', tpin: 'ZM789123456', status: 'Under Investigation', lastTransaction: '2024-01-12', monthlyVat: 8750, location: 'Lusaka West' }
   ];
 
   const alerts = [
-    {
-      id: '1',
-      type: 'Inactivity',
-      seller: 'Super Store',
-      sellerTpin: 'ZM456789123',
-      message: 'No transactions recorded for 10 days',
-      severity: 'high',
-      detectedDate: '2024-01-15 14:30',
-      details: 'The business has not recorded any transactions in the Hive.Tax system for the past 10 days. This could indicate possible tax evasion, system issues, or business closure. Last recorded transaction was on January 5, 2024.',
-      aiAnalysis: 'Pattern analysis shows this business typically records 15-20 transactions per week. The sudden halt in activity is unusual and warrants immediate investigation.',
-      recommendedAction: 'Contact business owner immediately, conduct on-site inspection if no response within 48 hours.',
-      previousOccurrences: 2,
-      location: 'Copperbelt'
-    },
-    {
-      id: '2',
-      type: 'Fraud Report',
-      seller: 'Quick Mart',
-      sellerTpin: 'ZM987654321',
-      message: 'Buyer reported missing transaction code',
-      severity: 'medium',
-      detectedDate: '2024-01-14 09:15',
-      details: 'A customer reported that they made a purchase of ZMW 450 but did not receive a transaction code or VAT receipt. This violates tax compliance regulations.',
-      aiAnalysis: 'This is the first fraud report for this business. Transaction patterns show normal activity, suggesting this may be an isolated incident. However, further monitoring is recommended.',
-      recommendedAction: 'Issue warning to business, verify recent transactions, schedule follow-up inspection within 2 weeks.',
-      reporterInfo: 'Reported by verified Hive.Tax user',
-      previousOccurrences: 0,
-      location: 'Lusaka East'
-    },
+    { id: '1', type: 'Inactivity', seller: 'Super Store', message: 'No transactions recorded for 10 days', severity: 'high' },
+    { id: '2', type: 'Fraud Report', seller: 'Quick Mart', message: 'Buyer reported missing transaction code', severity: 'medium' },
   ];
 
   const getStatusColor = (status: string) => {
@@ -323,7 +227,7 @@ Generated by Hive.Tax Platform
                     <p className="text-sm text-gray-600">{alert.message}</p>
                   </div>
                   <div className="flex space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => setSelectedAlert(alert)}>
+                    <Button size="sm" variant="outline">
                       View Details
                     </Button>
                     <Button size="sm" onClick={() => markUnderInvestigation(alert.seller)}>
@@ -558,193 +462,57 @@ Generated by Hive.Tax Platform
         </Card>
       )}
 
-      {/* Alert Details Modal */}
-      {selectedAlert && (
-        <Card className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <CardHeader className="border-b">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-800">Alert Details</h3>
-                  <p className="text-sm text-gray-600 mt-1">{selectedAlert.type} - {selectedAlert.seller}</p>
-                </div>
-                <Button variant="outline" size="sm" onClick={() => setSelectedAlert(null)}>
-                  ×
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-6">
-                <div className={`p-4 rounded-xl border-l-4 ${getSeverityColor(selectedAlert.severity)}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-gray-800">Severity Level</span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase ${
-                      selectedAlert.severity === 'high' ? 'bg-red-100 text-red-800' :
-                      selectedAlert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
-                      {selectedAlert.severity}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700">{selectedAlert.message}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-600 mb-1">Business Name</p>
-                    <p className="font-semibold text-gray-800">{selectedAlert.seller}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-600 mb-1">TPIN</p>
-                    <p className="font-semibold text-gray-800">{selectedAlert.sellerTpin}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-600 mb-1">Location</p>
-                    <p className="font-semibold text-gray-800">{selectedAlert.location}</p>
-                  </div>
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-600 mb-1">Detected Date</p>
-                    <p className="font-semibold text-gray-800">{selectedAlert.detectedDate}</p>
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 mb-2">Alert Details</h4>
-                  <p className="text-sm text-blue-900">{selectedAlert.details}</p>
-                </div>
-
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                  <h4 className="font-semibold text-purple-800 mb-2">AI Analysis</h4>
-                  <p className="text-sm text-purple-900">{selectedAlert.aiAnalysis}</p>
-                </div>
-
-                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">Recommended Action</h4>
-                  <p className="text-sm text-green-900">{selectedAlert.recommendedAction}</p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-xl">
-                    <p className="text-xs text-gray-600 mb-1">Previous Occurrences</p>
-                    <p className="text-2xl font-bold text-gray-800">{selectedAlert.previousOccurrences}</p>
-                  </div>
-                  {selectedAlert.reporterInfo && (
-                    <div className="bg-gray-50 p-4 rounded-xl">
-                      <p className="text-xs text-gray-600 mb-1">Reporter Info</p>
-                      <p className="text-sm font-semibold text-gray-800">{selectedAlert.reporterInfo}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex space-x-3 pt-4 border-t">
-                  <Button onClick={() => markUnderInvestigation(selectedAlert.seller)} className="flex-1">
-                    Mark Under Investigation
-                  </Button>
-                  <Button variant="outline" onClick={() => setSelectedAlert(null)}>
-                    Close
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </div>
-        </Card>
-      )}
-
       {/* Seller Details Modal */}
       {selectedSeller && (
-        <Card className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <CardHeader className="border-b">
-              <div className="flex justify-between items-center">
-                <h3 className="text-xl font-bold text-gray-800">Seller Details: {selectedSeller.name}</h3>
-                <Button variant="outline" size="sm" onClick={() => setSelectedSeller(null)}>
-                  ×
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Business Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Business Category:</span>
-                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
-                        {selectedSeller.category} ({selectedSeller.taxRate}% VAT)
-                      </span>
-                    </p>
-                    <p><span className="font-medium">TPIN:</span> {selectedSeller.tpin}</p>
-                    <p><span className="font-medium">Location:</span> {selectedSeller.location}</p>
-                    <p><span className="font-medium">Registration Date:</span> {selectedSeller.registrationDate}</p>
-                    <p><span className="font-medium">Last Transaction:</span> {selectedSeller.lastTransaction}</p>
-                    <p><span className="font-medium">Status:</span>
-                      <span className={`ml-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedSeller.status)}`}>
-                        {selectedSeller.status}
-                      </span>
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-semibold text-gray-800 mb-3">Contact Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <p><span className="font-medium">Owner Name:</span> {selectedSeller.ownerName}</p>
-                    <p><span className="font-medium">Phone Number:</span> {selectedSeller.phoneNumber}</p>
-                    <p><span className="font-medium">Email:</span> {selectedSeller.email}</p>
-                    <p><span className="font-medium">Employees:</span> {selectedSeller.employeeCount}</p>
-                  </div>
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">Seller Details: {selectedSeller.name}</h3>
+              <Button variant="secondary" onClick={() => setSelectedSeller(null)}>
+                Close
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-semibold text-gray-800 mb-3">Business Information</h4>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Business Category:</span> 
+                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                      {selectedSeller.category} ({selectedSeller.taxRate}% VAT)
+                    </span>
+                  </p>
+                  <p><span className="font-medium">TPIN:</span> {selectedSeller.tpin}</p>
+                  <p><span className="font-medium">Location:</span> {selectedSeller.location}</p>
+                  <p><span className="font-medium">Last Transaction:</span> {selectedSeller.lastTransaction}</p>
+                  <p><span className="font-medium">Status:</span> 
+                    <span className={`ml-2 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(selectedSeller.status)}`}>
+                      {selectedSeller.status}
+                    </span>
+                  </p>
                 </div>
               </div>
-
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <p className="text-xs text-green-600 mb-1">Monthly VAT</p>
-                  <p className="text-2xl font-bold text-green-800">ZMW {selectedSeller.monthlyVat.toLocaleString()}</p>
-                </div>
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  <p className="text-xs text-blue-600 mb-1">Avg. Monthly Revenue</p>
-                  <p className="text-2xl font-bold text-blue-800">ZMW {selectedSeller.averageMonthlyRevenue.toLocaleString()}</p>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-xl border border-purple-200">
-                  <p className="text-xs text-purple-600 mb-1">Compliance Rate</p>
-                  <p className="text-2xl font-bold text-purple-800">{selectedSeller.complianceRate}%</p>
-                </div>
-              </div>
-
-              <div className="mt-6 bg-gray-50 p-4 rounded-xl">
+              <div>
                 <h4 className="font-semibold text-gray-800 mb-3">Tax Information</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600">Tax Rate</p>
-                    <p className="font-semibold text-gray-800">{selectedSeller.taxRate}%</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Transactions (This Month)</p>
-                    <p className="font-semibold text-gray-800">156</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Total Revenue (This Month)</p>
-                    <p className="font-semibold text-gray-800">ZMW {selectedSeller.averageMonthlyRevenue.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">VAT Collection Rate</p>
-                    <p className="font-semibold text-gray-800">{selectedSeller.complianceRate}%</p>
-                  </div>
+                <div className="space-y-2 text-sm">
+                  <p><span className="font-medium">Monthly VAT:</span> ZMW {selectedSeller.monthlyVat.toLocaleString()}</p>
+                  <p><span className="font-medium">Tax Rate:</span> {selectedSeller.taxRate}%</p>
+                  <p><span className="font-medium">Compliance Rate:</span> 98%</p>
+                  <p><span className="font-medium">Total Transactions:</span> 156</p>
                 </div>
               </div>
-
-              <div className="mt-6 flex space-x-3">
-                <Button variant="outline">View Full History</Button>
-                <Button variant="outline">Download Report</Button>
-                {selectedSeller.status !== 'Under Investigation' && (
-                  <Button className="bg-orange-600 hover:bg-orange-700" onClick={() => {
-                    markUnderInvestigation(selectedSeller.id);
-                    setSelectedSeller(null);
-                  }}>
-                    Mark Under Investigation
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </div>
+            </div>
+            <div className="mt-6 flex space-x-3">
+              <Button variant="outline">View Full History</Button>
+              <Button variant="outline">Download Report</Button>
+              {selectedSeller.status !== 'Under Investigation' && (
+                <Button variant="danger" onClick={() => markUnderInvestigation(selectedSeller.id)}>
+                  Mark Under Investigation
+                </Button>
+              )}
+            </div>
+          </CardContent>
         </Card>
       )}
 
